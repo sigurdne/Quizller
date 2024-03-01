@@ -9,7 +9,7 @@
 
 	if (isset($_POST['print']))
 	{
-		$test_id = $_POST['test_id'];
+		$test_id = (int)$_POST['test_id'];
 
 		$pdf = new FPDF();
 		$pdf->AddPage();
@@ -17,26 +17,38 @@
 
 		$sql	= "SELECT id, rollno, password FROM students WHERE test_id = ? ORDER BY id ASC";
 		$stmt	= mysqli_prepare($conn, $sql);
-		mysqli_stmt_bind_param($stmt, "s", $test_id);
+		mysqli_stmt_bind_param($stmt, "i", $test_id);
 		mysqli_stmt_execute($stmt);
 		$result = mysqli_stmt_get_result($stmt);
 
-		$i	 = 1;
+		$i = 1;
+
+		$pdf->Cell(30, 12, "rollno", 1, 0, "C");
+		$pdf->Cell(30, 12, "score", 1, 0, "C");
+		$pdf->Cell(30, 12, "password" . "\t", 1, 0, "C");
+		$pdf->Cell(5, 12, "\t", 0, 0, "C");
+
 		while ($row = mysqli_fetch_assoc($result))
 		{
 			$rollno_id = $row["rollno"];
 			$sql1	   = "SELECT * FROM student_data WHERE id = ?";
-			$stmt1	   = mysqli_prepare($conn, $sql1);
+			$sql1	   = "SELECT student_data.*, score FROM student_data JOIN students ON student_data.id = students.rollno WHERE student_data.id = ?";
+
+			$stmt1	 = mysqli_prepare($conn, $sql1);
 			mysqli_stmt_bind_param($stmt1, "i", $rollno_id);
 			mysqli_stmt_execute($stmt1);
-			$result1   = mysqli_stmt_get_result($stmt1);
-			$row1	   = mysqli_fetch_assoc($result1);
+			$result1 = mysqli_stmt_get_result($stmt1);
+			$row1	 = mysqli_fetch_assoc($result1);
 
 			$pdf->Cell(30, 12, $row1["rollno"], 1, 0, "C");
-			if ($i % 3 == 0)
+			if ($i % 1 == 0)
+			{
+				$pdf->Cell(30, 12, $row1["score"], 1, 0, "C");
 				$pdf->MultiCell(30, 12, $row["password"] . "\n", 1, "C");
+			}
 			else
 			{
+				$pdf->Cell(30, 12, $row1["score"], 1, 0, "C");
 				$pdf->Cell(30, 12, $row["password"] . "\t", 1, 0, "C");
 				$pdf->Cell(5, 12, "\t", 0, 0, "C");
 			}
@@ -138,7 +150,7 @@
 													$i		= 1;
 													while ($row	= mysqli_fetch_assoc($result))
 													{
-														$rollno_id = $row["rollno"];
+														$rollno_id = (int)$row["rollno"];
 														$sql1	   = "SELECT * from student_data where id = $rollno_id";
 														$result1   = mysqli_query($conn, $sql1);
 														$row1	   = mysqli_fetch_assoc($result1);
@@ -188,15 +200,15 @@
 		<!-- <script src="http://jqueryte.com/js/jquery-te-1.4.0.min.js"></script> -->
 	</body>
 	<script>
-							function redirect_to_new_test()
-							{
-								window.location = "new_test.php";
-							}
+												function redirect_to_new_test()
+												{
+													window.location = "new_test.php";
+												}
 
-							function completed()
-							{
-								document.getElementById("form-print").submit();
-							}
+												function completed()
+												{
+													document.getElementById("form-print").submit();
+												}
 
 	</script>
 </html>
