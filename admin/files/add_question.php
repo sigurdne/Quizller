@@ -82,23 +82,31 @@ if(!isset($_SESSION["user_id"]))
         echo "<script>console.log('".$op_d."');</script>";
         echo "<script>console.log('".$op_correct_text."');</script>";
         echo "<script>console.log('".$score."');</script>";
+
+        $sql = "INSERT INTO Questions(title,optionA,optionB,optionC,optionD,correctAns,score) values(?,?,?,?,?,?,?)";
+        $stmt = mysqli_prepare($conn, $sql);
+        mysqli_stmt_bind_param($stmt, "ssssssi", $title, $op_a, $op_b, $op_c, $op_d, $op_correct_text, $score);
+        $result = mysqli_stmt_execute($stmt);
         
-        
-        $sql = "INSERT INTO Questions(title,optionA,optionB,optionC,optionD,correctAns,score) values('$title','$op_a','$op_b','$op_c','$op_d','$op_correct_text','$score')";
-        $result = mysqli_query($conn,$sql);
-        echo "<script>console.log('done 1');</script>";
-        if($result) {
+        echo "<script>console.log('done 1');</script>";       
+        if ($result) {
           echo "<script>console.log('done 2');</script>";
           $question_id = mysqli_insert_id($conn);
-          $sql1 = "INSERT INTO question_test_mapping VALUES('$question_id','$test_id')";
-          mysqli_query($conn,$sql1);
-          $sql2 = "INSERT INTO score(test_id, question_id, correct_count, wrong_count) VALUES('$test_id','$question_id',0,0)";
-          mysqli_query($conn,$sql2);
+          $sql1 = "INSERT INTO question_test_mapping VALUES(?, ?)";
+          $stmt1 = mysqli_prepare($conn, $sql1);
+          mysqli_stmt_bind_param($stmt1, "ii", $question_id, $test_id);
+          mysqli_stmt_execute($stmt1);
+
+          $sql2 = "INSERT INTO score(test_id, question_id, correct_count, wrong_count) VALUES(?, ?, 0, 0)";
+          $stmt2 = mysqli_prepare($conn, $sql2);
+          mysqli_stmt_bind_param($stmt2, "ii", $test_id, $question_id);
+          mysqli_stmt_execute($stmt2);
+
           echo '<script type="text/javascript">',
-        'completed();',
-        '</script>';
+          'completed();',
+          '</script>';
         }
-      }
+       }
     ?>
 
       <!-- Navbar -->
