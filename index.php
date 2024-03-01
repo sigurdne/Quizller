@@ -2,7 +2,6 @@
 	if(isset($_SESSION['test_ongoing']))
 		header("Location: files/quiz.php");
 ?>
-
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -18,6 +17,7 @@
 		<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
 		<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
 		<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+		<script src="vendor/bootstrap/js/popper.min.js"></script>
 		<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
 		<script src="vendor/tilt/tilt.jquery.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
@@ -102,13 +102,15 @@
 					Cookies.remove('last_question');
 				}
 				if (Cookies.get('test_submitted_status') != undefined)
-					Cookies.remove('test_submitted_status');	
+				{
+					Cookies.remove('test_submitted_status');
+				}
 			});
 
 
 			$('.js-tilt').tilt({
 				scale: 1.1
-			})
+			});
 
 			function login() {
 				var someFieldIsEmpty = false;
@@ -132,9 +134,17 @@
 						},
 						success: function (response) {
 							if(response == "STUDENT_RECORD_NOT_FOUND")
+							{
 								alert("Wrong Credentails entered");
+							}
+							else if(response === 'TEST_IS_ALREADY_DONE')
+							{
+								alert("Test is already done for this user");
+							}
 							else
+							{
 								window.location.replace("files/dashboard.php");
+							}
 						}
 					});
 				}

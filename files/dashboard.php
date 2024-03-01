@@ -150,7 +150,7 @@
 	<?php
 		session_start();
 
-		if ($_SESSION['test_ongoing'] == "true")
+		if (isset($_SESSION['test_ongoing'])  && $_SESSION['test_ongoing'] == "true")
 		{
 			echo "Test Ongoing";
 			header("Location: quiz.php");
