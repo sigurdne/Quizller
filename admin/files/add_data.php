@@ -202,6 +202,8 @@ if(!isset($_SESSION["user_id"]))
           },
           success: function (response) {
             alert(response);
+            if(response == "Success")
+              location.reload();
           }
         });
       }

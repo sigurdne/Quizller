@@ -10,21 +10,25 @@
 
 		foreach ($student_data as $obj)
 		{
-			$result = mysqli_query($conn, "Select * from tests where id = '" . $obj->test_id . "' and status_id IN (2)");
+			$stmt = mysqli_prepare($conn, "SELECT * FROM tests WHERE id = ? AND status_id IN (2)");
+			mysqli_stmt_bind_param($stmt, "s", $obj->test_id);
+			mysqli_stmt_execute($stmt);
+			$result = mysqli_stmt_get_result($stmt);
+
 			if (mysqli_num_rows($result) > 0)
 			{
 				while ($row = mysqli_fetch_assoc($result))
 				{
 					$_SESSION['test_id'] = $row['id'];
-					$testName			 = $row['name'];
+					$testName = $row['name'];
 				}
 			}
 			else
 			{
 				$testName = 'Ingen aktive';
 			}
+			mysqli_stmt_close($stmt);
 		}
-
 		echo $testName;
 	}
 	else

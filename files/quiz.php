@@ -1,5 +1,5 @@
 <?php
-	include '../database/config.php';
+//	include '../database/config.php';
 	session_start();
 
 	if (!isset($_SESSION['test_id']))
@@ -180,6 +180,7 @@
 				},
 				success: function (result)
 				{
+					alert(result);
 					createQuestion();
 				}});
 		}

@@ -1,27 +1,35 @@
 <?php
-    $id;
+	$id;
 	include "../../database/config.php";
-   
-        $classes = "SELECT id FROM classes where name = '".$_POST['class_name']."' ";
-        $result = mysqli_query($conn, $classes);
-                
-        if (mysqli_num_rows($result) > 0) {
-            // output data of each row
-            while($row = mysqli_fetch_assoc($result)) {
-                $id  = $row['id'];
-            }
-                    
-        $sql = "INSERT INTO student_data (rollno, class_id) VALUES ('".$_POST['extra_roll_number']."', $id)";
 
-        if (mysqli_query($conn, $sql)) {
-            echo "New record created successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . mysqli_error($conn);
-        }
+	$stmt = mysqli_prepare($conn, "SELECT id FROM classes where name = ?");
+	mysqli_stmt_bind_param($stmt, "s", $_POST['class_name']);
+	mysqli_stmt_execute($stmt);
 
-        } else {
-            echo "0 results";
-        }
+	$result = mysqli_stmt_get_result($stmt);
+	if (mysqli_num_rows($result) > 0)
+	{
+		// output data of each row
+		while ($row = mysqli_fetch_assoc($result))
+		{
+			$id = $row['id'];
+		}
 
-    mysqli_close($conn);
-?>
+		$stmt = mysqli_prepare($conn, "INSERT INTO student_data (rollno, class_id) VALUES (?, ?)");
+		mysqli_stmt_bind_param($stmt, "ii", $_POST['extra_roll_number'], $id);
+		if (mysqli_stmt_execute($stmt))
+		{
+			echo "New record created successfully";
+		}
+		else
+		{
+			echo "Error: " . mysqli_stmt_error($stmt);
+		}
+	}
+	else
+	{
+		echo "0 results";
+	}
+
+	mysqli_stmt_close($stmt);
+	mysqli_close($conn);

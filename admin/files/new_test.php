@@ -14,15 +14,25 @@ if(isset($_POST['new_test'])) {
   $status_id = $class_id = -1;
 
   //getting status id
-  $status_sql = "SELECT id from status where name LIKE '%$test_status%'";
-  $status = mysqli_query($conn,$status_sql);
-  if(mysqli_num_rows($status) > 0) {
-    $status_row = mysqli_fetch_assoc($status);
+  $status_sql = "SELECT id from status where name LIKE ?";
+  $status_stmt = mysqli_prepare($conn, $status_sql);
+  $search_status = "%$test_status%";
+  mysqli_stmt_bind_param($status_stmt, "s", $search_status);
+  mysqli_stmt_execute($status_stmt);
+  $status_result = mysqli_stmt_get_result($status_stmt);
+
+  if(mysqli_num_rows($status_result) > 0) {
+    $status_row = mysqli_fetch_assoc($status_result);
     $status_id = $status_row["id"];
   }
   //getting class id
-  $class_sql = "SELECT id from classes where name LIKE '%$test_class%'";
-  $class_result = mysqli_query($conn,$class_sql);
+  $class_sql = "SELECT id from classes where name LIKE ?";
+  $class_stmt = mysqli_prepare($conn, $class_sql);
+  $search_class = "%$test_class%";
+  mysqli_stmt_bind_param($class_stmt, "s", $search_class);
+  mysqli_stmt_execute($class_stmt);
+  $class_result = mysqli_stmt_get_result($class_stmt);
+
   if(mysqli_num_rows($class_result) > 0) {
     $class_row = mysqli_fetch_assoc($class_result);
     $class_id = $class_row["id"];
@@ -40,21 +50,29 @@ if(isset($_POST['new_test'])) {
 
   $teacher_id = $_SESSION["user_id"];
   //creating new test
-  $sql = "INSERT INTO tests(teacher_id, name, date, status_id, subject, total_questions,class_id) VALUES('$teacher_id','$test_name','$test_date','$status_id','$test_subject','$total_questions','$class_id')";
-  $result = mysqli_query($conn,$sql);
+  $sql = "INSERT INTO tests(teacher_id, name, date, status_id, subject, total_questions, class_id) VALUES(?, ?, ?, ?, ?, ?, ?)";
+  $stmt = mysqli_prepare($conn, $sql);
+  mysqli_stmt_bind_param($stmt, "isssssi", $teacher_id, $test_name, $test_date, $status_id, $test_subject, $total_questions, $class_id);
+  $result = mysqli_stmt_execute($stmt);
   $test_id = mysqli_insert_id($conn);
   if($result) {
     //creating student entry in students table for the test
-    $sql1 = "select id from student_data where class_id = '$class_id'";
-    $result1 = mysqli_query($conn,$sql1);
+    $sql1 = "SELECT id FROM student_data WHERE class_id = ?";
+    $stmt1 = mysqli_prepare($conn, $sql1);
+    mysqli_stmt_bind_param($stmt1, "i", $class_id);
+    mysqli_stmt_execute($stmt1);
+    $result1 = mysqli_stmt_get_result($stmt1);
     $temp = 8 - strlen($test_id);
-    while($row1 = mysqli_fetch_assoc($result1)) {
+
+    while ($row1 = mysqli_fetch_assoc($result1)) {
       $rollno = $row1["id"];
       $random = generateRandomString($temp);
       $random = $random . $test_id;
-      $sql2 = "INSERT INTO students(test_id,rollno,password,score,status) VALUES ('$test_id','$rollno','$random',0,0)";
-      $result2 = mysqli_query($conn,$sql2);
-      if($result2) {
+      $sql2 = "INSERT INTO students(test_id, rollno, password, score, status) VALUES (?, ?, ?, 0, 0)";
+      $stmt2 = mysqli_prepare($conn, $sql2);
+      mysqli_stmt_bind_param($stmt2, "iss", $test_id, $rollno, $random);
+      $result2 = mysqli_stmt_execute($stmt2);
+      if ($result2) {
         header("Location:dashboard.php");
       }
     }

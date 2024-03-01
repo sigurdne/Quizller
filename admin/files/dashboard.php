@@ -77,24 +77,28 @@ if(!isset($_SESSION["user_id"]))
                   <?php
                     include '../../database/config.php';
                     $user_id = $_SESSION["user_id"];
-                    $sql = "select * from tests where teacher_id = $user_id and status_id IN (1,2)";
-                    $result = mysqli_query($conn,$sql);
+                    $sql = "SELECT * FROM tests WHERE teacher_id = ? AND status_id IN (1,2)";
+                    $stmt = mysqli_prepare($conn, $sql);
+                    mysqli_stmt_bind_param($stmt, "i", $user_id);
+                    mysqli_stmt_execute($stmt);
+                    $result = mysqli_stmt_get_result($stmt);
+
                     if(mysqli_num_rows($result) > 0) {
                       while($row = mysqli_fetch_assoc($result)) {
                         ?>
-                          <div class="card" style="background:#ededed;">
-                              <div class="card-body" onclick="submit(<?= $row['id'];?>)">
-                                <h6><?= $row["name"];?></h6>
-                                <div class="row">
-                                  <div class="col-md-8">
-                                    <p>Subject - <?= $row["subject"];?></p>
-                                  </div>
-                                  <div class="col-md-4"> 
-                                    <p style="text-align:right;">Date - <?= $row["date"];?></p>
-                                  </div>
-                                </div>
+                        <div class="card" style="background:#ededed;">
+                          <div class="card-body" onclick="submit(<?= $row['id'];?>)">
+                            <h6><?= $row["name"];?></h6>
+                            <div class="row">
+                              <div class="col-md-8">
+                                <p>Subject - <?= $row["subject"];?></p>
                               </div>
+                              <div class="col-md-4"> 
+                                <p style="text-align:right;">Date - <?= $row["date"];?></p>
+                              </div>
+                            </div>
                           </div>
+                        </div>
                         <?php
                       }
                     }

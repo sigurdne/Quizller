@@ -4,12 +4,13 @@
 	$temp		  = $_SESSION['student_details'];
 	$student_data = json_decode($temp);
 
-	foreach ($student_data as $obj)
-	{
+	$stmt = $conn->prepare("UPDATE students SET status = 1 WHERE id = ?");
+	foreach ($student_data as $obj) {
 		$student_id = $obj->id;
-		$sql1		= "UPDATE students set status = 1 where id = '$student_id'";
-		mysqli_query($conn, $sql1);
+		$stmt->bind_param("i", $student_id);
+		$stmt->execute();
 	}
+	$stmt->close();
 
 	if ($_POST['message'] == 1)
 	{

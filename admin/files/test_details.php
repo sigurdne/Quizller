@@ -21,15 +21,21 @@ if(!isset($_SESSION["user_id"]))
     $general_settings = false;
 
     //getting status id
-    $status_sql = "SELECT id from status where name LIKE '%$test_status%'";
-    $status = mysqli_query($conn,$status_sql);
-    if(mysqli_num_rows($status) > 0) {
-      $status_row = mysqli_fetch_assoc($status);
+    $status_sql = "SELECT id from status where name LIKE ?";
+    $status_stmt = mysqli_prepare($conn, $status_sql);
+    mysqli_stmt_bind_param($status_stmt, "s", $test_status);
+    mysqli_stmt_execute($status_stmt);
+    $status_result = mysqli_stmt_get_result($status_stmt);
+
+    if(mysqli_num_rows($status_result) > 0) {
+      $status_row = mysqli_fetch_assoc($status_result);
       $status_id = $status_row["id"];
     }
 
-    $sql = "UPDATE tests SET name = '$test_name', date = '$test_date', status_id = '$status_id', subject = '$test_subject', total_questions = '$total_questions' WHERE id = '$test_id'";
-    $result = mysqli_query($conn,$sql);
+    $sql = "UPDATE tests SET name = ?, date = ?, status_id = ?, subject = ?, total_questions = ? WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "ssissi", $test_name, $test_date, $status_id, $test_subject, $total_questions, $test_id);
+    $result = mysqli_stmt_execute($stmt);
     if($result) {
       $general_settings = true;
     }
@@ -56,13 +62,17 @@ if(!isset($_SESSION["user_id"]))
     $random = generateRandomString($temp);
     $random = $random . $test_id;
 
-    $sql = "INSERT INTO student_data(rollno,class_id) values ($student_roll_no,null)";
-    $result = mysqli_query($conn,$sql);
+    $sql = "INSERT INTO student_data(rollno,class_id) values (?, null)";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $student_roll_no);
+    $result = mysqli_stmt_execute($stmt);
     $roll_no_id = mysqli_insert_id($conn);
     if($result) {
       $other_settings = true;
-      $sql1 = "INSERT INTO students (test_id,rollno,password,score,status) values('$test_id','$roll_no_id','$random',0,0)";
-      $result1 = mysqli_query($conn, $sql1);
+      $sql1 = "INSERT INTO students (test_id,rollno,password,score,status) values(?, ?, ?, 0, 0)";
+      $stmt1 = mysqli_prepare($conn, $sql1);
+      mysqli_stmt_bind_param($stmt1, "iis", $test_id, $roll_no_id, $random);
+      $result1 = mysqli_stmt_execute($stmt1);
       if($result1) {
         $other_settings = true;
       }
@@ -79,54 +89,86 @@ if(!isset($_SESSION["user_id"]))
     $result1 = mysqli_query($conn,$sql1);
     $row1 = mysqli_fetch_assoc($result1);
     $complete_id = $row1["id"];
-    $sql = "UPDATE tests set status_id = $complete_id WHERE id = '$test_id'";
-    $result = mysqli_query($conn,$sql);
+    $sql = "UPDATE tests SET status_id = ? WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "ii", $complete_id, $test_id);
+    $result = mysqli_stmt_execute($stmt);
     if($result) {
       $complete = true;
     }
   }
 
   if(isset($_POST['deleted'])) {
-    $test_id = $_POST['test_id'];
-    $sql1= "DELETE from question_test_mapping WHERE test_id = $test_id";
-    $result1 = mysqli_query($conn,$sql1);
+    if(isset($_POST['test_id'])) {
+      $test_id = $_POST['test_id'];
 
-    $sql5= "DELETE from score WHERE test_id = $test_id";
-    $result5 = mysqli_query($conn,$sql5);
-    
-    $sql4 = "SELECT rollno from students where test_id = $test_id";
-    $result4 = mysqli_query($conn,$sql4);
-    while($row4 = mysqli_fetch_assoc($result4)) {
-      $rollno_id = $row4["rollno"];
-      $sql3= "DELETE from student_data WHERE id = '$rollno_id' AND class_id IS NULL";
-      $result3 = mysqli_query($conn,$sql3);
-    }
-    $sql2= "DELETE from students WHERE test_id = $test_id";
-    $result2 = mysqli_query($conn,$sql2);
-    $sql= "DELETE from tests WHERE id = $test_id";
-    $result = mysqli_query($conn,$sql);
-    if($result) {
-      $delete = true;
+      $sql1 = "DELETE FROM question_test_mapping WHERE test_id = ?";
+      $stmt1 = mysqli_prepare($conn, $sql1);
+      mysqli_stmt_bind_param($stmt1, "i", $test_id);
+      $result1 = mysqli_stmt_execute($stmt1);
+
+      $sql5 = "DELETE FROM score WHERE test_id = ?";
+      $stmt5 = mysqli_prepare($conn, $sql5);
+      mysqli_stmt_bind_param($stmt5, "i", $test_id);
+      $result5 = mysqli_stmt_execute($stmt5);
+
+      $sql4 = "SELECT rollno FROM students WHERE test_id = ?";
+      $stmt4 = mysqli_prepare($conn, $sql4);
+      mysqli_stmt_bind_param($stmt4, "i", $test_id);
+      mysqli_stmt_execute($stmt4);
+      $result4 = mysqli_stmt_get_result($stmt4);
+
+      while($row4 = mysqli_fetch_assoc($result4)) {
+        $rollno_id = $row4["rollno"];
+        $sql3 = "DELETE FROM student_data WHERE id = ? AND class_id IS NULL";
+        $stmt3 = mysqli_prepare($conn, $sql3);
+        mysqli_stmt_bind_param($stmt3, "i", $rollno_id);
+        mysqli_stmt_execute($stmt3);
+      }
+
+      $sql2 = "DELETE FROM students WHERE test_id = ?";
+      $stmt2 = mysqli_prepare($conn, $sql2);
+      mysqli_stmt_bind_param($stmt2, "i", $test_id);
+      $result2 = mysqli_stmt_execute($stmt2);
+
+      $sql = "DELETE FROM tests WHERE id = ?";
+      $stmt = mysqli_prepare($conn, $sql);
+      mysqli_stmt_bind_param($stmt, "i", $test_id);
+      $result = mysqli_stmt_execute($stmt);
+
+      if($result) {
+        $delete = true;
+      }
     }
   }
 
   if(isset($_POST['test_id'])) {
     $test_id = $_POST['test_id'];
-    $sql = "SELECT * from tests where id = $test_id";
-    $result = mysqli_query($conn,$sql);
+
+    $sql = "SELECT * FROM tests WHERE id = ?";
+    $stmt = mysqli_prepare($conn, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $test_id);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
     $test_details = mysqli_fetch_assoc($result);
     $status_id = $test_details["status_id"];
     $class_id = $test_details["class_id"];
-    
-    $sql1 = "SELECT name from status where id = $status_id";
-    $result1 = mysqli_query($conn,$sql1);
+
+    $sql1 = "SELECT name FROM status WHERE id = ?";
+    $stmt1 = mysqli_prepare($conn, $sql1);
+    mysqli_stmt_bind_param($stmt1, "i", $status_id);
+    mysqli_stmt_execute($stmt1);
+    $result1 = mysqli_stmt_get_result($stmt1);
     $gen = mysqli_fetch_assoc($result1);
     $status = $gen["name"];
 
-    $sql2 = "SELECT name from classes where id = $class_id";
-    $result2 = mysqli_query($conn,$sql2);
+    $sql2 = "SELECT name FROM classes WHERE id = ?";
+    $stmt2 = mysqli_prepare($conn, $sql2);
+    mysqli_stmt_bind_param($stmt2, "i", $class_id);
+    mysqli_stmt_execute($stmt2);
+    $result2 = mysqli_stmt_get_result($stmt2);
     $gen1 = mysqli_fetch_assoc($result2);
-    $class = $gen1["name"];    
+    $class = $gen1["name"];
   }
 
 ?>

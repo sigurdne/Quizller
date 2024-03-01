@@ -92,13 +92,19 @@
                     </thead>
                     <tbody>
                     <?php
-                      $sql = "select * from students where test_id = $test_id";
-                      $result = mysqli_query($conn,$sql);
+                      $sql = "SELECT * FROM students WHERE test_id = ?";
+                      $stmt = mysqli_prepare($conn, $sql);
+                      mysqli_stmt_bind_param($stmt, "i", $test_id);
+                      mysqli_stmt_execute($stmt);
+                      $result = mysqli_stmt_get_result($stmt);
                       $i = 1;
-                      while($row = mysqli_fetch_assoc($result)) {
+                      while ($row = mysqli_fetch_assoc($result)) {
                         $roll_no = $row["rollno"];
-                        $sql1 = "select rollno from student_data where id = '$roll_no'";
-                        $result1 = mysqli_query($conn,$sql1);
+                        $sql1 = "SELECT rollno FROM student_data WHERE id = ?";
+                        $stmt1 = mysqli_prepare($conn, $sql1);
+                        mysqli_stmt_bind_param($stmt1, "s", $roll_no);
+                        mysqli_stmt_execute($stmt1);
+                        $result1 = mysqli_stmt_get_result($stmt1);
                         $row1 = mysqli_fetch_assoc($result1);
                         ?>
                         <tr>
@@ -106,9 +112,8 @@
                           <td><?= $row1["rollno"]; ?></td>
                           <td><?= $row["score"]; ?></td>
                         </tr>
-
-                    <?php    
-                      $i++;
+                        <?php
+                        $i++;
                       }
                     ?>
 

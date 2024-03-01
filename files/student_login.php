@@ -2,7 +2,7 @@
 	include '../database/config.php';
 	session_start();
 
-	$student_roll_number = $_POST['rollNumber'];
+	$student_roll_number = (int)$_POST['rollNumber'];
 	$student_password	 = $_POST['password'];
 
 	$sql1		= "select id from student_data where rollno = '$student_roll_number'";
@@ -10,7 +10,10 @@
 	$row1		= mysqli_fetch_assoc($result1);
 	$student_id = !empty($row1["id"]) ? (int)$row1["id"] : 0;
 
-	$result = mysqli_query($conn, "Select id, test_id, rollno, score, status from students where rollno = '" . $student_id . "' and password = '" . $student_password . "'");// . and status = 0 ");
+	$stmt = mysqli_prepare($conn, "SELECT id, test_id, rollno, score, status FROM students WHERE rollno = ? AND password = ?");
+	mysqli_stmt_bind_param($stmt, "is", $student_id, $student_password);
+	mysqli_stmt_execute($stmt);
+	$result = mysqli_stmt_get_result($stmt);
 
 	if (mysqli_num_rows($result) > 0)
 	{

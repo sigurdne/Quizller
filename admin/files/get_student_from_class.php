@@ -1,40 +1,53 @@
 <?php
-    $id;
-    $roll_numbers;
-    $counter = 0;
+	$id;
+	$roll_numbers;
+	$counter = 0;
 	include "../../database/config.php";
-   
-        $classes = "SELECT id FROM classes where name = '".$_POST['class_name']."' limit 1 ";
-        $result = mysqli_query($conn, $classes);
-                
-        if (mysqli_num_rows($result) > 0) {
-            // output data of each row
-            while($row = mysqli_fetch_assoc($result)) {
-                $id  = $row['id'];
-            }
-            
-        } else {
-            echo "0 results";
-        }
 
-        $roll = "SELECT rollno FROM student_data where class_id = '".$id."' ";
-        $re = mysqli_query($conn, $roll);
-        $arr = array();
-        $arr1 = array();
-        if (mysqli_num_rows($re) > 0) {
-            // output data of each row
-            $i = 1;
-            while($row = mysqli_fetch_assoc($re)) {
-                $arr["id"] = $i;
-                $arr["rollno"] = $row["rollno"];
-                $arr1[] = $arr;
-                $i++;
-            }
-            
-            echo json_encode($arr1);
-        } else {
-            echo "0 results";
-        }
+	$classesQuery = "SELECT id FROM classes WHERE name = ? LIMIT 1";
+	$classesStmt  = mysqli_prepare($conn, $classesQuery);
+	mysqli_stmt_bind_param($classesStmt, "s", $_POST['class_name']);
+	mysqli_stmt_execute($classesStmt);
+	mysqli_stmt_store_result($classesStmt);
 
-    mysqli_close($conn);
-?>
+	if (mysqli_stmt_num_rows($classesStmt) > 0)
+	{
+		mysqli_stmt_bind_result($classesStmt, $id);
+		mysqli_stmt_fetch($classesStmt);
+
+		$rollQuery = "SELECT rollno FROM student_data WHERE class_id = ?";
+		$rollStmt  = mysqli_prepare($conn, $rollQuery);
+		mysqli_stmt_bind_param($rollStmt, "i", $id);
+		mysqli_stmt_execute($rollStmt);
+		mysqli_stmt_store_result($rollStmt);
+
+		$arr  = array();
+		$arr1 = array();
+		if (mysqli_stmt_num_rows($rollStmt) > 0)
+		{
+			mysqli_stmt_bind_result($rollStmt, $rollno);
+			$i = 1;
+			while (mysqli_stmt_fetch($rollStmt))
+			{
+				$arr["id"]	   = $i;
+				$arr["rollno"] = $rollno;
+				$arr1[]		   = $arr;
+				$i++;
+			}
+
+			echo json_encode($arr1);
+		}
+		else
+		{
+			echo "0 results";
+		}
+
+		mysqli_stmt_close($rollStmt);
+	}
+	else
+	{
+		echo "0 results";
+	}
+
+	mysqli_stmt_close($classesStmt);
+	mysqli_close($conn);

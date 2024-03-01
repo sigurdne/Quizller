@@ -73,29 +73,32 @@ if(!isset($_SESSION["user_id"]))
               <div class="card-body">
                   <?php
                     include '../../database/config.php';
+                    $sql = "SELECT tests.*, status.name AS status FROM tests JOIN status ON tests.status_id = status.id WHERE teacher_id = ? AND status_id IN (2, 3)";
+                    $stmt = mysqli_prepare($conn, $sql);
                     $user_id = $_SESSION["user_id"];
-                    $sql = "select tests.* , status.name as status from tests JOIN status ON tests.status_id = status.id where teacher_id = $user_id and status_id IN (2, 3)";
+                    mysqli_stmt_bind_param($stmt, "i", $user_id);
+                    mysqli_stmt_execute($stmt);
+                    $result = mysqli_stmt_get_result($stmt);
 
-                    $result = mysqli_query($conn,$sql);
-                    if(mysqli_num_rows($result) > 0) {
-                      while($row = mysqli_fetch_assoc($result)) {
+                    if (mysqli_num_rows($result) > 0) {
+                      while ($row = mysqli_fetch_assoc($result)) {
                         ?>
-                          <div class="card" style="background:#ededed;">
-                              <div class="card-body" onclick="submit(<?= $row['id'];?>,'<?php echo $row['name'];?>')">
-                                <h6><?= $row["name"];?></h6>
-                                <div class="row">
-                                  <div class="col-md-8">
-                                    <p>Subject - <?= $row["subject"];?></p>
-                                  </div>
-                                  <div class="col-md-2">
-                                    <p style="text-align:right;">Status - <?= $row["status"];?></p>
-                                  </div>
-                                  <div class="col-md-2">
-                                    <p style="text-align:right;">Date - <?= $row["date"];?></p>
-                                  </div>
-                                </div>
+                        <div class="card" style="background:#ededed;">
+                          <div class="card-body" onclick="submit(<?= $row['id']; ?>,'<?php echo $row['name']; ?>')">
+                            <h6><?= $row["name"]; ?></h6>
+                            <div class="row">
+                              <div class="col-md-8">
+                                <p>Subject - <?= $row["subject"]; ?></p>
                               </div>
+                              <div class="col-md-2">
+                                <p style="text-align:right;">Status - <?= $row["status"]; ?></p>
+                              </div>
+                              <div class="col-md-2">
+                                <p style="text-align:right;">Date - <?= $row["date"]; ?></p>
+                              </div>
+                            </div>
                           </div>
+                        </div>
                         <?php
                       }
                     }

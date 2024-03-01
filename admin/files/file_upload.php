@@ -86,23 +86,32 @@
                 }
 
                 if (!empty($title) || !empty($op_a) || !empty($op_b) || !empty($op_c) || !empty($op_d) || !empty($op_correct_text) || !empty($score)) {
-                    $sql = "INSERT INTO Questions(title,optionA,optionB,optionC,optionD,correctAns,score) values('$title','$op_a','$op_b','$op_c','$op_d','$op_correct_text','$score')";
-                    $result = mysqli_query($conn,$sql);
-                    if($result) {
+                    $sql = "INSERT INTO Questions(title, optionA, optionB, optionC, optionD, correctAns, score) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    $stmt = mysqli_prepare($conn, $sql);
+                    mysqli_stmt_bind_param($stmt, "ssssssi", $title, $op_a, $op_b, $op_c, $op_d, $op_correct_text, $score);
+                    $result = mysqli_stmt_execute($stmt);
+                    if ($result) {
                         $question_id = mysqli_insert_id($conn);
-                        $sql1 = "INSERT INTO question_test_mapping VALUES('$question_id','$test_id')";
-                        $result1 = mysqli_query($conn,$sql1);
-                        $sql2 = "INSERT INTO score(test_id, question_id, correct_count, wrong_count) VALUES('$test_id','$question_id',0,0)";
-                        mysqli_query($conn,$sql2);
-                        if($result1) {
+                        $sql1 = "INSERT INTO question_test_mapping VALUES (?, ?)";
+                        $stmt1 = mysqli_prepare($conn, $sql1);
+                        mysqli_stmt_bind_param($stmt1, "ii", $question_id, $test_id);
+                        $result1 = mysqli_stmt_execute($stmt1);
+                        $sql2 = "INSERT INTO score(test_id, question_id, correct_count, wrong_count) VALUES (?, ?, 0, 0)";
+                        $stmt2 = mysqli_prepare($conn, $sql2);
+                        mysqli_stmt_bind_param($stmt2, "ii", $test_id, $question_id);
+                        mysqli_stmt_execute($stmt2);
+                        if ($result1) {
                             echo "<script>console.log('success');</script>";
                             echo '<script type="text/javascript">',
                             'completed();',
                             '</script>';
                         }
-                    }  
+                    }
                 }
             }
         }
     }
-?>
+    else
+    { 
+        echo "<script>console.log('Invalid File');</script>";
+    }

@@ -76,28 +76,35 @@
               </div>
               <div class="card-body">
                     <?php
-                      $sql = "select * from score where test_id = '$test_id'";
-                      $result = mysqli_query($conn,$sql);
-                      while($row = mysqli_fetch_assoc($result)) {
+                      $sql = "SELECT * FROM score WHERE test_id = ?";
+                      $stmt = mysqli_prepare($conn, $sql);
+                      mysqli_stmt_bind_param($stmt, "s", $test_id);
+                      mysqli_stmt_execute($stmt);
+                      $result = mysqli_stmt_get_result($stmt);
+
+                      while ($row = mysqli_fetch_assoc($result)) {
                         $question_id = $row["question_id"];
-                        $sql1 = "select * from Questions where id = '$question_id'";
-                        $result1 = mysqli_query($conn,$sql1);
+                        $sql1 = "SELECT * FROM Questions WHERE id = ?";
+                        $stmt1 = mysqli_prepare($conn, $sql1);
+                        mysqli_stmt_bind_param($stmt1, "s", $question_id);
+                        mysqli_stmt_execute($stmt1);
+                        $result1 = mysqli_stmt_get_result($stmt1);
                         $row1 = mysqli_fetch_assoc($result1);
                         ?>
-                          <div class="card" style="background:#ededed;">
-                              <div class="card-body">
-                                  <h6><?= $row1["title"]; ?></h6>
-                                  <div class="row">
-                                      <div class="col-md-6">
-                                          <p>Correct Count - <?= $row["correct_count"];?></p>  
-                                      </div> 
-                                      <div class="col-md-6">
-                                          <p style="text-align:right;">Wrong Count - <?= $row["wrong_count"];?></p>
-                                      </div>
-                                  </div>
+                        <div class="card" style="background:#ededed;">
+                          <div class="card-body">
+                            <h6><?= $row1["title"]; ?></h6>
+                            <div class="row">
+                              <div class="col-md-6">
+                                <p>Correct Count - <?= $row["correct_count"]; ?></p>
                               </div>
+                              <div class="col-md-6">
+                                <p style="text-align:right;">Wrong Count - <?= $row["wrong_count"]; ?></p>
+                              </div>
+                            </div>
                           </div>
-                    <?php    
+                        </div>
+                        <?php
                       }
                     ?>
               </div>

@@ -17,7 +17,7 @@
 
 		if (!isset($_SESSION['question_IDS_fetched']))
 		{
-			$result = mysqli_query($conn, "Select question_id from question_test_mapping where test_id = '" . $test_id . "' ");
+			$result = mysqli_query($conn, "Select question_id from question_test_mapping where test_id = '" . (int)$test_id . "' ");
 			if (mysqli_num_rows($result) > 0)
 			{
 				while ($row = mysqli_fetch_assoc($result))
@@ -47,13 +47,13 @@
 	{
 		if ($isFirst == true)
 		{
-			$question = mysqli_query($conn, "Select id, title, optionA, optionB, optionC, optionD, score from Questions where id = '" . $_SESSION['question_IDS_fetched'][0]['question_id'] . "' ");
+			$question = mysqli_query($conn, "Select id, title, optionA, optionB, optionC, optionD, score from Questions where id = '" . (int)$_SESSION['question_IDS_fetched'][0]['question_id'] . "' ");
 			$_SESSION['question_counter']++;
 			fetchAndReturnQuestion($question);
 		}
 		else
 		{
-			$question = mysqli_query($conn, "Select id, title, optionA, optionB, optionC, optionD, score from Questions where id = '" . $_SESSION['question_IDS_fetched'][$_SESSION['question_counter']]['question_id'] . "' ");
+			$question = mysqli_query($conn, "Select id, title, optionA, optionB, optionC, optionD, score from Questions where id = '" . (int)$_SESSION['question_IDS_fetched'][$_SESSION['question_counter']]['question_id'] . "' ");
 			$_SESSION['question_counter']++;
 			fetchAndReturnQuestion($question);
 		}
