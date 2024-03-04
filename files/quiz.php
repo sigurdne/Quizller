@@ -15,7 +15,7 @@
         <link rel="stylesheet" type="text/css" href="../css/util.css">
         <link rel="stylesheet" type="text/css" href="../css/main.css">
         <link rel="stylesheet" type="text/css" href="../css/quiz.css">
-        <script src="../vendor/jquery/jquery-3.2.1.min.js"></script>
+        <script src="../vendor/jquery/jquery-3.7.1.min.js"></script>
         <script src="../vendor/bootstrap/js/bootstrap.min.js"></script>
         <script src="../vendor/tilt/tilt.jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/js-cookie@beta/dist/js.cookie.min.js"></script>
