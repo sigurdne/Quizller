@@ -11,7 +11,7 @@
 		foreach ($student_data as $obj)
 		{
 			$stmt = mysqli_prepare($conn, "SELECT * FROM tests WHERE id = ? AND status_id IN (2)");
-			mysqli_stmt_bind_param($stmt, "s", $obj->test_id);
+			mysqli_stmt_bind_param($stmt, "i", $obj->test_id);
 			mysqli_stmt_execute($stmt);
 			$result = mysqli_stmt_get_result($stmt);
 
