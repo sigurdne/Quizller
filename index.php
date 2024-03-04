@@ -1,6 +1,10 @@
 <?php
 	if(isset($_SESSION['test_ongoing']))
+	{
 		header("Location: files/quiz.php");
+	}
+	include "database/config.php";
+
 ?>
 <html>
 	<head>
@@ -60,6 +64,39 @@
 						<span class="login100-form-title">
 							Student Login
 						</span>
+						
+						<div class="wrap-input100 validate-input">
+							<select class="input100" id="class_id" name="class_id" required>
+								<?php
+									// Assuming you have a database connection established
+
+									$query = "SELECT 
+										classes.id AS id,
+										classes.name AS class_name,
+										SUM(CASE WHEN tests.status_id = 2 THEN 1 ELSE 0 END) AS num_tests
+									FROM 
+										classes
+									LEFT JOIN 
+										tests ON classes.id = tests.class_id
+									GROUP BY 
+										classes.id
+									ORDER BY 
+										classes.name";
+
+									$result = mysqli_query($conn, $query);
+									while ($row = mysqli_fetch_assoc($result)) {
+										echo "<option value='" . $row['id'] . "'>" . "{$row['class_name']}::{$row['num_tests']}" . "</option>";
+									}
+									mysqli_close($conn);
+								?>
+							</select>
+							<span class="focus-input100"></span>
+							<span class="symbol-input100">
+								<i class="fa fa-list" aria-hidden="true"></i>
+							</span>
+							<span class="error text-danger" id="empty_class_id_field"></span>
+						</div>
+
 						
 						<div class="wrap-input100 validate-input">
 							<input class="input100" id="studentRollNumber" type="text" name="rollNumber"
@@ -129,6 +166,7 @@
 						type: 'POST',
 						url: 'files/student_login.php',
 						data: {
+							'class_id': $('#class_id').val(),
 							'rollNumber': $('#studentRollNumber').val(),
 							'password': $('#studentPassword').val(),
 						},

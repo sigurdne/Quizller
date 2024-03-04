@@ -2,10 +2,11 @@
 	include '../database/config.php';
 	session_start();
 
+	$class_id = (int)$_POST['class_id'];
 	$student_roll_number = (int)$_POST['rollNumber'];
 	$student_password	 = $_POST['password'];
 
-	$sql1		= "select id from student_data where rollno = '$student_roll_number'";
+	$sql1		= "select id from student_data where rollno = '$student_roll_number' AND class_id = $class_id";
 	$result1	= mysqli_query($conn, $sql1);
 	$row1		= mysqli_fetch_assoc($result1);
 	$student_id = !empty($row1["id"]) ? (int)$row1["id"] : 0;
